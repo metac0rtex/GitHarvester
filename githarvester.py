@@ -56,10 +56,9 @@ def githubsearch(search, regex):
 
   # Parse each page of results
   currentpage = 1
-#  while (currentpage <= totalpages):
-#    parseresultpage(currentpage, search, regex)
-#    currentpage += 1
-  parseresultpage(1, search, regex)
+  while (currentpage <= totalpages):
+    parseresultpage(currentpage, search, regex)
+    currentpage += 1
 
 def parseresultpage(page, search, regex):
   print '    [+] Pulling results from page ' + str(page)
