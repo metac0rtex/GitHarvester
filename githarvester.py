@@ -182,8 +182,8 @@ def main():
   parser.add_argument('-d', action='store', dest='directory', help='Download results to a specific directory', type=str)
   parser.add_argument('-r', action='store', dest='custom_regex', help='Custom regex string', type=str)
   parser.add_argument('-s', action='store', dest='custom_search', help='Custom GitHub search string', type=str)
-  parser.add_argument('-u', '--url', action='store_true', help='Output URL of found object if verbose is turned on')
-  parser.add_argument('-v', '--verbose', action='store_true', help='Turn verbose output on')
+  parser.add_argument('-u', '--url', action='store_true', help='Output URL of found object')
+  parser.add_argument('-v', '--verbose', action='store_true', help='Turn verbose output on. This will output matched lines')
   parser.add_argument('-w', action='store', dest='write_file', help='Write results to a file', type=str)
   global args
   args =  parser.parse_args()
