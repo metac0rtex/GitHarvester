@@ -23,7 +23,7 @@ optional arguments:
   -d DIRECTORY      Download results to a specific directory
   -r CUSTOM_REGEX   Custom regex string
   -s CUSTOM_SEARCH  Custom GitHub search string
-  -u, --url         Output URL of found object if verbose is turned on
-  -v, --verbose     Turn verbose output on
+  -u, --url         Output URL of found object
+  -v, --verbose     Turn verbose output on. This will output matched lines
   -w WRITE_FILE     Write results to a file
 </pre>
