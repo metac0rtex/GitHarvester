@@ -2,6 +2,7 @@
 
 # Import all the things!
 import sys
+import os
 try:
   import argparse
 except:
@@ -9,6 +10,7 @@ except:
   sys.exit(0)
 try:
   from urllib import urlopen
+  from urllib import urlretrieve
 except:
   print '[!] urllib is not installed. Try "pip install urllib"'
   sys.exit(0)
@@ -22,6 +24,11 @@ try:
 except:
   print '[!] re is not installed. Try "pip install re"'
   sys.exit(0)
+try:
+  import pycurl
+except:
+  print '[!] pycurl is not installed. Try "pip install pycurl"'
+  sys.exit(0)
 
 # Display Startup Banner
 def banner():
@@ -33,7 +40,7 @@ def banner():
   print "| |__| | | |_  | |  | | (_| | |   \ V /  __/\__ \ ||  __/ |   "
   print " \_____|_|\__| |_|  |_|\__,_|_|    \_/ \___||___/\__\___|_|   "
   print ""
-  print "Version 0.5"
+  print "Version 0.6"
   print "By: @metacortex of @dc801"
   print ""
 
@@ -51,7 +58,11 @@ def githubsearch(search, regex):
     pages = page.findAll('a')
     for a in pages:
       navbarlinks.append(a)
-  totalpages = int(str(re.findall(r">.*</a>", str(navbarlinks[-2]))).strip('[').strip(']').strip('\'').strip('>').strip('</a>'))  # Because I suck at code
+  try:
+    totalpages = int(str(re.findall(r">.*</a>", str(navbarlinks[-2]))).strip('[').strip(']').strip('\'').strip('>').strip('</a>'))  # Because I suck at code
+  except IndexError:
+    print '  [!] Search error'
+    sys.exit(0)
   print '  [+] Returned ' + str(totalpages) + ' total pages'
 
   # Parse each page of results
@@ -79,7 +90,7 @@ def parseresultpage(page, search, regex):
       soup3 = BeautifulSoup(str(individualresultpage), 'html.parser')
       for rawlink in soup3.findAll('a', attrs={'id':'raw-url'}):
         rawurl = 'https://github.com' + str(rawlink['href'])
-        if (args.custom_regex) or (args.custom_search):
+        if (args.custom_regex):
           searchcode(rawurl, regex)
         else:
           wpsearchcode(rawurl, regex)
@@ -92,6 +103,8 @@ def searchcode(url, regex):
     result = str(regexresults.group(0))
     if (args.verbose == True):
       print "      [+] Found the following results"
+      if (args.url == True):
+        print "        " + str(url)
       print "        " + result
     if args.write_file:
       if (result == ''):
@@ -100,6 +113,16 @@ def searchcode(url, regex):
         f = open(args.write_file, 'a')
         f.write(str(result + '\n'))
         f.close()
+
+    if args.directory:
+      filename = args.directory + "/" + url.replace('/', '-')
+      if not os.path.exists(args.directory):
+        os.makedirs(args.directory)
+      print "        [+] Downloading " + filename
+      urlretrieve(url, filename)
+      fp = open(filename, 'wb')
+      fp.write(code)
+      fp.close()
   except:
     pass
 
@@ -135,6 +158,8 @@ def wpsearchcode(url, regex):
 
     if (args.verbose == True):
       print '      [+] Found the following credentials'
+      if (args.url == True):
+        print '        ' + str(url)
       print '        database: ' + db
       print '        user: ' + user
       print '        password: ' + password
@@ -155,8 +180,10 @@ def main():
 
   # Parsing arguments
   parser = argparse.ArgumentParser(description='This tool is used for harvesting information from GitHub. By default it looks for code with the filename of \'wp-config.php\' and pulls out auth info')
+  parser.add_argument('-d', action='store', dest='directory', help='Download results to a specific directory', type=str)
   parser.add_argument('-r', action='store', dest='custom_regex', help='Custom regex string', type=str)
   parser.add_argument('-s', action='store', dest='custom_search', help='Custom GitHub search string', type=str)
+  parser.add_argument('-u', '--url', action='store_true', help='Output URL of found object if verbose is turned on')
   parser.add_argument('-v', '--verbose', action='store_true', help='Turn verbose output on')
   parser.add_argument('-w', action='store', dest='write_file', help='Write results to a file', type=str)
   global args
@@ -179,5 +206,8 @@ def main():
 
   print '[+] DONE'
 
-if __name__ == "__main__":
-  main()
+try:
+  if __name__ == "__main__":
+    main()
+except KeyboardInterrupt:
+  print "[!] Keyboard Interrupt. Shutting down"
