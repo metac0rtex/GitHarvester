@@ -9,7 +9,7 @@
 | |__| | | |_  | |  | | (_| | |   \ V /  __/\__ \ ||  __/ |
  \_____|_|\__| |_|  |_|\__,_|_|    \_/ \___||___/\__\___|_|
 
-Version 0.6
+Version 0.6.1
 By: @metacortex of @dc801
 
 usage: githarvest.py [-h] [-d DIRECTORY] [-r CUSTOM_REGEX] [-s CUSTOM_SEARCH]
