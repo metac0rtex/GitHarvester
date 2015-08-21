@@ -24,7 +24,11 @@ try:
 except:
   print '[!] re is not installed. Try "pip install re"'
   sys.exit(0)
-
+try:
+  import pycurl
+except:
+  print '[!] pycurl is not installed. Try "pip install pycurl"'
+  sys.exit(0)
 
 # Display Startup Banner
 def banner():
@@ -36,7 +40,7 @@ def banner():
   print "| |__| | | |_  | |  | | (_| | |   \ V /  __/\__ \ ||  __/ |   "
   print " \_____|_|\__| |_|  |_|\__,_|_|    \_/ \___||___/\__\___|_|   "
   print ""
-  print "Version 0.6"
+  print "Version 0.6.1"
   print "By: @metacortex of @dc801"
   print ""
 
@@ -97,11 +101,10 @@ def searchcode(url, regex):
   try:
     regexresults = re.search(regex, str(code))
     result = str(regexresults.group(0))
+    if (args.url == True):
+      print "        " + str(url)
     if (args.verbose == True):
       print "      [+] Found the following results"
-      if (args.url == True):
-        print "        " + str(url)
-      print "        " + result
     if args.write_file:
       if (result == ''):
         pass
