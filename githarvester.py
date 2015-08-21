@@ -24,11 +24,7 @@ try:
 except:
   print '[!] re is not installed. Try "pip install re"'
   sys.exit(0)
-try:
-  import pycurl
-except:
-  print '[!] pycurl is not installed. Try "pip install pycurl"'
-  sys.exit(0)
+
 
 # Display Startup Banner
 def banner():
