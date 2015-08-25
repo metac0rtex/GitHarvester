@@ -40,7 +40,7 @@ def banner():
   print "| |__| | | |_  | |  | | (_| | |   \ V /  __/\__ \ ||  __/ |   "
   print " \_____|_|\__| |_|  |_|\__,_|_|    \_/ \___||___/\__\___|_|   "
   print ""
-  print "Version 0.6.1"
+  print "Version 0.6.2"
   print "By: @metacortex of @dc801"
   print ""
 
@@ -187,6 +187,9 @@ def main():
   parser.add_argument('-w', action='store', dest='write_file', help='Write results to a file', type=str)
   global args
   args =  parser.parse_args()
+
+  if not len(sys.argv) > 1:
+    args.verbose = True
 
   if args.custom_search:
     search = args.custom_search
