@@ -40,7 +40,7 @@ def banner():
   print "| |__| | | |_  | |  | | (_| | |   \ V /  __/\__ \ ||  __/ |   "
   print " \_____|_|\__| |_|  |_|\__,_|_|    \_/ \___||___/\__\___|_|   "
   print ""
-  print "Version 0.6.2"
+  print "Version 0.6.3"
   print "By: @metacortex of @dc801"
   print ""
 
@@ -105,6 +105,7 @@ def searchcode(url, regex):
       print "        " + str(url)
     if (args.verbose == True):
       print "      [+] Found the following results"
+      print "        " + str(result)
     if args.write_file:
       if (result == ''):
         pass
@@ -112,6 +113,7 @@ def searchcode(url, regex):
         f = open(args.write_file, 'a')
         f.write(str(result + '\n'))
         f.close()
+
 
     if args.directory:
       filename = args.directory + "/" + url.replace('/', '-')
@@ -124,14 +126,6 @@ def searchcode(url, regex):
       fp.close()
   except:
     pass
-
-  if args.write_file:
-    if (result == ''):
-      pass
-    else:
-      f = open(args.write_file, 'a')
-      f.write(str(result + '\n'))
-      f.close()
 
 #This whole function is confusing as hell FYI
 def wpsearchcode(url, regex):
