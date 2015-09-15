@@ -191,7 +191,7 @@ def main():
   # Parsing arguments
   parser = argparse.ArgumentParser(description='This tool is used for harvesting information from GitHub. By default it looks for code with the filename of \'wp-config.php\' and pulls out auth info')
   parser.add_argument('-d', action='store', dest='directory', help='Download results to a specific directory', type=str)
-  parser.add_argument('-o', action='store', dest='organize', help='Organize results by \'new\', \'old\', or \'both', type=str)
+  parser.add_argument('-o', action='store', dest='organize', help='Organize results by \'new\', \'old\', or \'both\'', type=str)
   parser.add_argument('-r', action='store', dest='custom_regex', help='Custom regex string', type=str)
   parser.add_argument('-s', action='store', dest='custom_search', help='Custom GitHub search string', type=str)
   parser.add_argument('-u', '--url', action='store_true', help='Output URL of found object')
