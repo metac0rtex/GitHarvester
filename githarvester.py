@@ -227,7 +227,7 @@ def main():
     githubsearch(search, regex, '', '')
     githubsearch(search, regex, 'desc', 'indexed')
     githubsearch(search, regex, 'asc', 'indexed')
-else:
+  else:
     githubsearch(search, regex, '', '')
 
   print '[+] DONE'
