@@ -11,6 +11,7 @@ except:
 try:
   from urllib import urlopen
   from urllib import urlretrieve
+  from urllib import urlencode
 except:
   print '[!] urllib is not installed. Try "pip install urllib"'
   sys.exit(0)
@@ -40,15 +41,26 @@ def banner():
   print "| |__| | | |_  | |  | | (_| | |   \ V /  __/\__ \ ||  __/ |   "
   print " \_____|_|\__| |_|  |_|\__,_|_|    \_/ \___||___/\__\___|_|   "
   print ""
-  print "Version 0.6.3"
+  print "Version 0.7.0"
   print "By: @metacortex of @dc801"
   print ""
 
 # Parse GitHub search results
-def githubsearch(search, regex):
+def githubsearch(search, regex, order, sort):
+
   navbarlinks = []
-  searchurl = 'https://github.com/search?q=' + search + 'type=Code'
-  print '[+] Searching Github for ' + search
+  githubbase = 'https://github.com/search?'
+  githubsearchurl = {'o' : order, 'q' : search, 's' : sort, 'type' : 'Code', 'ref' : 'searchresults'}
+  searchurl = githubbase + str(urlencode(githubsearchurl))
+  if (order == 'asc'):
+    print '[+] Searching Github for ' + search + ' and ordering by OLDEST'
+    print searchurl
+  elif (order == 'desc'):
+    print '[+] Searching Github for ' + search + ' and ordering by NEWEST'
+    print searchurl
+  else:
+    print '[+] Searching Github for ' + search + ' and ordering by BEST MATCH'
+    print searchurl
   searchresults = urlopen(searchurl).read()
   soup = BeautifulSoup(searchresults, 'html.parser')
 
@@ -68,13 +80,15 @@ def githubsearch(search, regex):
   # Parse each page of results
   currentpage = 1
   while (currentpage <= totalpages):
-    parseresultpage(currentpage, search, regex)
+    parseresultpage(currentpage, search, order, sort, regex)
     currentpage += 1
 
-def parseresultpage(page, search, regex):
+def parseresultpage(page, search, order, sort, regex):
   print '    [+] Pulling results from page ' + str(page)
-  pageurl = 'https://github.com/search?p=' + str(page) + '&q=' + search + '&type=Code'
-  pagehtml = urlopen(pageurl).read()
+  githubbase = 'https://github.com/search?'
+  githubsearchurl = {'o' : order, 'p' : page, 'q' : search, 's' : sort, 'type' : 'Code', 'ref' : 'searchresults'}
+  searchurl = githubbase + str(urlencode(githubsearchurl))
+  pagehtml = urlopen(searchurl).read()
   soup = BeautifulSoup(pagehtml, 'html.parser')
 
   # Find GitHub div with code results
@@ -101,29 +115,32 @@ def searchcode(url, regex):
   try:
     regexresults = re.search(regex, str(code))
     result = str(regexresults.group(0))
-    if (args.url == True):
-      print "        " + str(url)
-    if (args.verbose == True):
-      print "      [+] Found the following results"
-      print "        " + str(result)
-    if args.write_file:
-      if (result == ''):
-        pass
-      else:
-        f = open(args.write_file, 'a')
-        f.write(str(result + '\n'))
-        f.close()
+    if result is not None:
+      if (args.url == True):
+        print "        " + str(url)
+      if (args.verbose == True):
+        print "      [+] Found the following results"
+        print "        " + str(result)
+      if args.write_file:
+        if (result == ''):
+          pass
+        else:
+          f = open(args.write_file, 'a')
+          f.write(str(result + '\n'))
+          f.close()
 
 
-    if args.directory:
-      filename = args.directory + "/" + url.replace('/', '-')
-      if not os.path.exists(args.directory):
-        os.makedirs(args.directory)
-      print "        [+] Downloading " + filename
-      urlretrieve(url, filename)
-      fp = open(filename, 'wb')
-      fp.write(code)
-      fp.close()
+      if args.directory:
+        filename = args.directory + "/" + url.replace('/', '-')
+        if not os.path.exists(args.directory):
+          os.makedirs(args.directory)
+        print "        [+] Downloading " + filename
+        urlretrieve(url, filename)
+        fp = open(filename, 'wb')
+        fp.write(code)
+        fp.close()
+    else:
+      pass
   except:
     pass
 
@@ -174,6 +191,7 @@ def main():
   # Parsing arguments
   parser = argparse.ArgumentParser(description='This tool is used for harvesting information from GitHub. By default it looks for code with the filename of \'wp-config.php\' and pulls out auth info')
   parser.add_argument('-d', action='store', dest='directory', help='Download results to a specific directory', type=str)
+  parser.add_argument('-o', action='store', dest='organize', help='Organize results by \'new\', \'old\', or \'both', type=str)
   parser.add_argument('-r', action='store', dest='custom_regex', help='Custom regex string', type=str)
   parser.add_argument('-s', action='store', dest='custom_search', help='Custom GitHub search string', type=str)
   parser.add_argument('-u', '--url', action='store_true', help='Output URL of found object')
@@ -198,7 +216,16 @@ def main():
     regex = 'regexhere'
     print '[+] Using default regex'
 
-  githubsearch(search, regex)
+
+  if (args.organize == 'new'):
+    githubsearch(search, regex, 'desc', 'indexed')
+  elif (args.organize == 'old'):
+    githubsearch(search, regex, 'asc', 'indexed')
+  elif (args.organize == 'both'):
+    githubsearch(search, regex, 'desc', 'indexed')
+    githubsearch(search, regex, 'asc', 'indexed')
+  else:
+    githubsearch(search, regex, '', '')
 
   print '[+] DONE'
 
