@@ -1,90 +1,71 @@
 #!/usr/bin/env python
+
 # Import all the things!
-from __future__ import print_function
 import sys
 import os
-import logging
-from logging.handlers import RotatingFileHandler
 try:
   import argparse
 except:
-  print('[!] argparse is not installed. Try "pip install argparse"')
+  print '[!] argparse is not installed. Try "pip install argparse"'
   sys.exit(0)
 try:
   from urllib import urlopen
   from urllib import urlretrieve
   from urllib import urlencode
 except:
-  print('[!] urllib is not installed. Try "pip install urllib"')
+  print '[!] urllib is not installed. Try "pip install urllib"'
   sys.exit(0)
 try:
   from bs4 import BeautifulSoup
 except:
-  print('[!] BeautifulSoup is not installed. Try "pip install beautifulsoup4"')
+  print '[!] BeautifulSoup is not installed. Try "pip install beautifulsoup4"'
   sys.exit(0)
 try:
   import re
 except:
-  print('[!] re is not installed. Try "pip install re"')
+  print '[!] re is not installed. Try "pip install re"'
   sys.exit(0)
 try:
   import pycurl
 except:
-  print('[!] pycurl is not installed. Try "pip install pycurl"')
+  print '[!] pycurl is not installed. Try "pip install pycurl"'
   sys.exit(0)
-
 
 # Display Startup Banner
 def banner():
-  print("")
-  print("  _____ _ _     _    _                           _")
-  print(" / ____(_) |   | |  | |                         | |")
-  print("| |  __ _| |_  | |__| | __ _ _ ____   _____  ___| |_ ___ _ __ ")
-  print("| | |_ | | __| |  __  |/ _` | '__\ \ / / _ \/ __| __/ _ \ '__|")
-  print("| |__| | | |_  | |  | | (_| | |   \ V /  __/\__ \ ||  __/ |   ")
-  print(" \_____|_|\__| |_|  |_|\__,_|_|    \_/ \___||___/\__\___|_|   ")
-  print("")
-  print("Version 0.7.1")
-  print("By: @metacortex of @dc801")
-  print("")
-
-
-# Setup logger
-def logging_setup():
-  '''Setup the logger'''
-  logger = logging.getLogger('GH')
-  logger.setLevel(logging.DEBUG)
-  file_handler = RotatingFileHandler('/tmp/git_harvester_log', maxBytes=1000000, backupCount=10)
-  console_handler = logging.StreamHandler()
-  formatter = logging.Formatter('%(name)s: %(levelname)s - %(message)s')
-  file_handler.setFormatter(formatter)
-  console_handler.setFormatter(formatter)
-  # logger.addHandler(file_handler)  # uncomment to log to /tmp/
-  logger.addHandler(console_handler)
-  return logger
-
+  print ""
+  print "  _____ _ _     _    _                           _"
+  print " / ____(_) |   | |  | |                         | |"
+  print "| |  __ _| |_  | |__| | __ _ _ ____   _____  ___| |_ ___ _ __ "
+  print "| | |_ | | __| |  __  |/ _` | '__\ \ / / _ \/ __| __/ _ \ '__|"
+  print "| |__| | | |_  | |  | | (_| | |   \ V /  __/\__ \ ||  __/ |   "
+  print " \_____|_|\__| |_|  |_|\__,_|_|    \_/ \___||___/\__\___|_|   "
+  print ""
+  print "Version 0.7.1"
+  print "By: @metacortex of @dc801"
+  print ""
 
 # Parse GitHub search results
 def githubsearch(search, regex, order, sort):
 
   navbarlinks = []
   githubbase = 'https://github.com/search?'
-  githubsearchurl = {'o': order, 'q': search, 's': sort, 'type': 'Code', 'ref': 'searchresults'}
+  githubsearchurl = {'o' : order, 'q' : search, 's' : sort, 'type' : 'Code', 'ref' : 'searchresults'}
   searchurl = githubbase + str(urlencode(githubsearchurl))
   if (order == 'asc'):
-    logger.info('[+] Searching Github for ' + search + ' and ordering by OLDEST')
-    logger.info(searchurl)
+    print '[+] Searching Github for ' + search + ' and ordering by OLDEST'
+    print searchurl
   elif (order == 'desc'):
-    logger.info('[+] Searching Github for ' + search + ' and ordering by NEWEST')
-    logger.info(searchurl)
+    print '[+] Searching Github for ' + search + ' and ordering by NEWEST'
+    print searchurl
   else:
-    logger.info('[+] Searching Github for ' + search + ' and ordering by BEST MATCH')
-    logger.info(searchurl)
+    print '[+] Searching Github for ' + search + ' and ordering by BEST MATCH'
+    print searchurl
   searchresults = urlopen(searchurl).read()
   soup = BeautifulSoup(searchresults, 'html.parser')
 
   # Find the bottom nav bar and parse out those links
-  pagenav = soup.findAll('div', attrs={'class': 'pagination'})
+  pagenav = soup.findAll('div', attrs={'class':'pagination'});
   for page in pagenav:
     pages = page.findAll('a')
     for a in pages:
@@ -92,9 +73,9 @@ def githubsearch(search, regex, order, sort):
   try:
     totalpages = int(str(re.findall(r">.*</a>", str(navbarlinks[-2]))).strip('[').strip(']').strip('\'').strip('>').strip('</a>'))  # Because I suck at code
   except IndexError:
-    logger.error('  [!] Search error')
+    print '  [!] Search error'
     sys.exit(0)
-  logger.info('  [+] Returned ' + str(totalpages) + ' total pages')
+  print '  [+] Returned ' + str(totalpages) + ' total pages'
 
   # Parse each page of results
   currentpage = 1
@@ -102,33 +83,31 @@ def githubsearch(search, regex, order, sort):
     parseresultpage(currentpage, search, order, sort, regex)
     currentpage += 1
 
-
 def parseresultpage(page, search, order, sort, regex):
-  logger.info('    [+] Pulling results from page ' + str(page))
+  print '    [+] Pulling results from page ' + str(page)
   githubbase = 'https://github.com/search?'
-  githubsearchurl = {'o': order, 'p': page, 'q': search, 's': sort, 'type': 'Code', 'ref': 'searchresults'}
+  githubsearchurl = {'o' : order, 'p' : page, 'q' : search, 's' : sort, 'type' : 'Code', 'ref' : 'searchresults'}
   searchurl = githubbase + str(urlencode(githubsearchurl))
   pagehtml = urlopen(searchurl).read()
   soup = BeautifulSoup(pagehtml, 'html.parser')
 
   # Find GitHub div with code results
-  results = soup.findAll('div', attrs={'class': 'code-list-item'})
+  results = soup.findAll('div', attrs={'class':'code-list-item'})
 
   # Pull url's from results and hit each of them
   soup1 = BeautifulSoup(str(results), 'html.parser')
-  for item in soup1.findAll('p', attrs={'class': 'full-path'}):
+  for item in soup1.findAll('p', attrs={'class':'full-path'}):
     soup2 = BeautifulSoup(str(item), 'html.parser')
     for link in soup2.findAll('a'):
       individualresult = 'https://github.com' + str(link['href'])
       individualresultpage = urlopen(individualresult).read()
       soup3 = BeautifulSoup(str(individualresultpage), 'html.parser')
-      for rawlink in soup3.findAll('a', attrs={'id': 'raw-url'}):
+      for rawlink in soup3.findAll('a', attrs={'id':'raw-url'}):
         rawurl = 'https://github.com' + str(rawlink['href'])
         if (args.custom_regex):
           searchcode(rawurl, regex)
         else:
           wpsearchcode(rawurl, regex)
-
 
 def searchcode(url, regex):
   code = urlopen(url).read()
@@ -137,11 +116,11 @@ def searchcode(url, regex):
     regexresults = re.search(regex, str(code))
     result = str(regexresults.group(0))
     if result is not None:
-      if (args.url is True):
-        logger.info("        " + str(url))
-      if (args.verbose is True):
-        logger.info("      [+] Found the following results")
-        logger.info("        " + str(result))
+      if (args.url == True):
+        print "        " + str(url)
+      if (args.verbose == True):
+        print "      [+] Found the following results"
+        print "        " + str(result)
       if args.write_file:
         if (result == ''):
           pass
@@ -150,11 +129,12 @@ def searchcode(url, regex):
           f.write(str(result + '\n'))
           f.close()
 
+
       if args.directory:
         filename = args.directory + "/" + url.replace('/', '-')
         if not os.path.exists(args.directory):
           os.makedirs(args.directory)
-        logger.info("        [+] Downloading " + filename)
+        print "        [+] Downloading " + filename
         urlretrieve(url, filename)
         fp = open(filename, 'wb')
         fp.write(code)
@@ -164,8 +144,7 @@ def searchcode(url, regex):
   except:
     pass
 
-
-# This whole function is confusing as hell FYI
+#This whole function is confusing as hell FYI
 def wpsearchcode(url, regex):
   code = urlopen(url).read()
   try:
@@ -187,14 +166,14 @@ def wpsearchcode(url, regex):
     if (host == '\', '):  # Check for blank host because...shitty code
       host = ''
 
-    if (args.verbose is True):
-      logger.info('      [+] Found the following credentials')
-      if (args.url is True):
-        logger.info('        ' + str(url))
-      logger.info('        database: ' + db)
-      logger.info('        user: ' + user)
-      logger.info('        password: ' + password)
-      logger.info('        host: ' + host)
+    if (args.verbose == True):
+      print '      [+] Found the following credentials'
+      if (args.url == True):
+        print '        ' + str(url)
+      print '        database: ' + db
+      print '        user: ' + user
+      print '        password: ' + password
+      print '        host: ' + host
 
     if args.write_file:
       f = open(args.write_file, 'a')
@@ -219,23 +198,24 @@ def main():
   parser.add_argument('-v', '--verbose', action='store_true', help='Turn verbose output on. This will output matched lines')
   parser.add_argument('-w', action='store', dest='write_file', help='Write results to a file', type=str)
   global args
-  args = parser.parse_args()
+  args =  parser.parse_args()
 
   if not len(sys.argv) > 1:
     args.verbose = True
 
   if args.custom_search:
     search = args.custom_search
-    logger.info('[+] Custom search is: ' + str(search))
+    print '[+] Custom search is: ' + str(search)
   else:
     search = 'filename:wp-config.php'
-    logger.info('[+] Using default search')
+    print '[+] Using default search'
   if args.custom_regex:
     regex = args.custom_regex
-    logger.info('[+] Custom regex is: ' + str(regex))
+    print '[+] Custom regex is: ' + str(regex)
   else:
     regex = 'regexhere'
-    logger.info('[+] Using default regex')
+    print '[+] Using default regex'
+
 
   if (args.organize == 'new'):
     githubsearch(search, regex, 'desc', 'indexed')
@@ -250,11 +230,10 @@ def main():
   else:
     githubsearch(search, regex, '', '')
 
-  logger.info('[+] DONE')
+  print '[+] DONE'
 
 try:
   if __name__ == "__main__":
-    logger = logging_setup()
     main()
 except KeyboardInterrupt:
-  logger.info("[!] Keyboard Interrupt. Shutting down")
+  print "[!] Keyboard Interrupt. Shutting down"
