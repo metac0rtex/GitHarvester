@@ -41,7 +41,7 @@ def banner():
   print "| |__| | | |_  | |  | | (_| | |   \ V /  __/\__ \ ||  __/ |   "
   print " \_____|_|\__| |_|  |_|\__,_|_|    \_/ \___||___/\__\___|_|   "
   print ""
-  print "Version 0.7.1"
+  print "Version 0.7.2"
   print "By: @metacortex of @dc801"
   print ""
 
@@ -96,18 +96,18 @@ def parseresultpage(page, search, order, sort, regex):
 
   # Pull url's from results and hit each of them
   soup1 = BeautifulSoup(str(results), 'html.parser')
-  for item in soup1.findAll('p', attrs={'class':'full-path'}):
+  for item in soup1.findAll('p', attrs={'class':'title'}):
     soup2 = BeautifulSoup(str(item), 'html.parser')
-    for link in soup2.findAll('a'):
-      individualresult = 'https://github.com' + str(link['href'])
-      individualresultpage = urlopen(individualresult).read()
-      soup3 = BeautifulSoup(str(individualresultpage), 'html.parser')
-      for rawlink in soup3.findAll('a', attrs={'id':'raw-url'}):
-        rawurl = 'https://github.com' + str(rawlink['href'])
-        if (args.custom_regex):
-          searchcode(rawurl, regex)
-        else:
-          wpsearchcode(rawurl, regex)
+    individualresult = soup2.findAll('a')[1]
+    individualresulturl = 'https://github.com/' + str(individualresult['href'])
+    individualresultpage = urlopen(individualresulturl).read()
+    soup3 = BeautifulSoup(str(individualresultpage), 'html.parser')
+    for rawlink in soup3.findAll('a', attrs={'id':'raw-url'}):
+      rawurl = 'https://github.com' + str(rawlink['href'])
+      if (args.custom_regex):
+        searchcode(rawurl, regex)
+      else:
+        wpsearchcode(rawurl, regex)
 
 def searchcode(url, regex):
   code = urlopen(url).read()
