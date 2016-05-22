@@ -41,15 +41,20 @@ def banner():
   print "| |__| | | |_  | |  | | (_| | |   \ V /  __/\__ \ ||  __/ |   "
   print " \_____|_|\__| |_|  |_|\__,_|_|    \_/ \___||___/\__\___|_|   "
   print ""
-  print "Version 0.7.2"
+  print "Version 0.8"
   print "By: @metacortex of @dc801"
   print ""
 
 # Parse GitHub search results
-def githubsearch(search, regex, order, sort):
+def githubsearch(search, regex, order, sort, account, project):
 
   navbarlinks = []
-  githubbase = 'https://github.com/search?'
+  if project:
+    githubbase = 'https://github.com/' + account + '/' + project + '/search?'
+  else:
+    githubbase = 'https://github.com/search?'
+  if account:
+    search = 'user:' + account + ' ' + search
   githubsearchurl = {'o' : order, 'q' : search, 's' : sort, 'type' : 'Code', 'ref' : 'searchresults'}
   searchurl = githubbase + str(urlencode(githubsearchurl))
   if (order == 'asc'):
@@ -65,27 +70,34 @@ def githubsearch(search, regex, order, sort):
   soup = BeautifulSoup(searchresults, 'html.parser')
 
   # Find the bottom nav bar and parse out those links
-  pagenav = soup.findAll('div', attrs={'class':'pagination'});
-  for page in pagenav:
-    pages = page.findAll('a')
-    for a in pages:
-      navbarlinks.append(a)
-  try:
-    totalpages = int(str(re.findall(r">.*</a>", str(navbarlinks[-2]))).strip('[').strip(']').strip('\'').strip('>').strip('</a>'))  # Because I suck at code
-  except IndexError:
-    print '  [!] Search error'
-    sys.exit(0)
-  print '  [+] Returned ' + str(totalpages) + ' total pages'
+  pagenav = soup.findAll('div', attrs={'class':'pagination'})
+  if pagenav:
+    for page in pagenav:
+      pages = page.findAll('a')
+      for a in pages:
+        navbarlinks.append(a)
+    try:
+      totalpages = int(str(re.findall(r">.*</a>", str(navbarlinks[-2]))).strip('[').strip(']').strip('\'').strip('>').strip('</a>'))  # Because I suck at code
+    except IndexError:
+      print '  [!] Search error'
+      sys.exit(0)
+    print '  [+] Returned ' + str(totalpages) + ' total pages'
 
-  # Parse each page of results
-  currentpage = 1
-  while (currentpage <= totalpages):
-    parseresultpage(currentpage, search, order, sort, regex)
-    currentpage += 1
+    # Parse each page of results
+    currentpage = 1
+    while (currentpage <= totalpages):
+      parseresultpage(currentpage, search, order, sort, regex, account, project)
+      currentpage += 1
+  else:
+    print '  [+] Only one page of results'
+    parseresultpage(1, search, order, sort, regex, account, project)
 
-def parseresultpage(page, search, order, sort, regex):
+def parseresultpage(page, search, order, sort, regex, account, project):
   print '    [+] Pulling results from page ' + str(page)
-  githubbase = 'https://github.com/search?'
+  if project:
+    githubbase = 'https://github.com/' + account + '/' + project + '/search?'
+  else:
+    githubbase = 'https://github.com/search?'
   githubsearchurl = {'o' : order, 'p' : page, 'q' : search, 's' : sort, 'type' : 'Code', 'ref' : 'searchresults'}
   searchurl = githubbase + str(urlencode(githubsearchurl))
   pagehtml = urlopen(searchurl).read()
@@ -98,7 +110,10 @@ def parseresultpage(page, search, order, sort, regex):
   soup1 = BeautifulSoup(str(results), 'html.parser')
   for item in soup1.findAll('p', attrs={'class':'title'}):
     soup2 = BeautifulSoup(str(item), 'html.parser')
-    individualresult = soup2.findAll('a')[1]
+    try:
+    	individualresult = soup2.findAll('a')[1]
+    except:
+        individualresult = soup2.findAll('a')[0]
     individualresulturl = 'https://github.com/' + str(individualresult['href'])
     individualresultpage = urlopen(individualresulturl).read()
     soup3 = BeautifulSoup(str(individualresultpage), 'html.parser')
@@ -190,8 +205,10 @@ def main():
 
   # Parsing arguments
   parser = argparse.ArgumentParser(description='This tool is used for harvesting information from GitHub. By default it looks for code with the filename of \'wp-config.php\' and pulls out auth info')
+  parser.add_argument('-a', action='store', dest='account', help='Specify a specific user account', type=str)
   parser.add_argument('-d', action='store', dest='directory', help='Download results to a specific directory', type=str)
   parser.add_argument('-o', action='store', dest='organize', help='Organize results by \'new\', \'old\', \'best\', or \'all\'', type=str)
+  parser.add_argument('-p', action='store', dest='project', help='Specific project to search. Use with -a', type=str)
   parser.add_argument('-r', action='store', dest='custom_regex', help='Custom regex string', type=str)
   parser.add_argument('-s', action='store', dest='custom_search', help='Custom GitHub search string', type=str)
   parser.add_argument('-u', '--url', action='store_true', help='Output URL of found object')
@@ -202,7 +219,23 @@ def main():
 
   if not len(sys.argv) > 1:
     args.verbose = True
+  if (args.project):
+    if not args.account:
+      print '[!] Need -u for -p'
+      parser.print_help()
+      sys.exit(0)
 
+  if args.account:
+    account = args.account
+    print '[+] Searching the account ' + account
+    if args.project:
+      project = args.project
+      print '[+] Searching the ' + project + ' project'
+    else:
+      project = None
+  else:
+    account = None
+    project = None
   if args.custom_search:
     search = args.custom_search
     print '[+] Custom search is: ' + str(search)
@@ -216,19 +249,18 @@ def main():
     regex = 'regexhere'
     print '[+] Using default regex'
 
-
   if (args.organize == 'new'):
-    githubsearch(search, regex, 'desc', 'indexed')
+    githubsearch(search, regex, 'desc', 'indexed', account, project)
   elif (args.organize == 'old'):
-    githubsearch(search, regex, 'asc', 'indexed')
+    githubsearch(search, regex, 'asc', 'indexed', account, project)
   elif (args.organize == 'best'):
-    githubsearch(search, regex, '', '')
+    githubsearch(search, regex, '', '', account, project)
   elif (args.organize == 'all'):
-    githubsearch(search, regex, '', '')
-    githubsearch(search, regex, 'desc', 'indexed')
-    githubsearch(search, regex, 'asc', 'indexed')
+    githubsearch(search, regex, '', '', account, project)
+    githubsearch(search, regex, 'desc', 'indexed', account, project)
+    githubsearch(search, regex, 'asc', 'indexed', account, project)
   else:
-    githubsearch(search, regex, '', '')
+    githubsearch(search, regex, '', '', account, project)
 
   print '[+] DONE'
 
